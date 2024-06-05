@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>查询表单</title>
+    <!-- 引入 Leaflet CSS 和 JavaScript 文件 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- 引入 Chart.js 脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入日期适配器 -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
+    <style>
+        /* 设置地图容器的大小 */
+        #map {
+            height: 400px;
+        }
+
+        /* 设置折线图容器的大小 */
+        #chartContainer {
+            height: 300px;
+            width: 80%;
+            margin: 20px;
+        }
+    </style>
+
+    <script>
+        // 声明一个全局的 map 变量
+        var map = null;
+        var circle = null;
+        var lineChart = null;
+
+        // 获取当前位置的函数
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    document.getElementById('userLocation').value = position.coords.latitude + ', ' + position.coords.longitude;
+                });
+            } else {
+                alert("此浏览器不支持地理位置信息。");
+            }
+        }
+
+        // 在地图上标记用户位置的函数
+        function markUserLocation(userLocation) {
+            var locationArray = userLocation.split(',').map(function(item) {
+                return parseFloat(item);
+            });
+
+            // 初始化地图
+            if (map === null) {
+                map = L.map('map').setView(locationArray, 13);
+
+                // 添加天地图标准影像图层
+                const imageURL2 = "https://t0.tianditu.gov.cn/vec_w/wmts?" +
+                    "SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles" +
+                    "&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=9ebc2cac2fe8c9c523ba6cf9703dcbe5";
+
+                var tianditushilian = L.tileLayer(imageURL2, {
+                    attribution: "tianditu"
+                });
+
+                tianditushilian.addTo(map); // 将图层添加到地图中
+            }
+
+            // 在地图上添加一个标记
+            L.marker(locationArray).addTo(map)
+                .bindPopup('您的位置')
+                .openPopup();
+
+            // 绘制圆
+            if (circle !== null) {
+                map.removeLayer(circle); // 移除之前的圆
+            }
+
+            // 在地图上绘制新的圆
+            circle = L.circle(locationArray, {
+                color: 'blue',
+                fillColor: 'blue',
+                fillOpacity: 0.3,
+                radius: parseFloat(document.getElementById('searchDistance').value) * 1000 // 转换为米
+            }).addTo(map);
+        }
+
+        async function searchNearbyStations() {
+            // 获取用户输入的位置和搜索距离
+            var userLocation = document.getElementById('userLocation').value;
+            var searchDistance = parseFloat(document.getElementById('searchDistance').value);
+
+            // 销毁之前的地图绘制
+            if (map !== null) {
+                map.remove(); // 移除之前的地图
+                map = null; // 重置地图变量为 null
+            }
+
+            // 初始化地图
+            map = L.map('map').setView([0, 0], 13);
+            //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            const imageURL2 = "https://t0.tianditu.gov.cn/vec_w/wmts?" +
+                "SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles" +
+                "&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=9ebc2cac2fe8c9c523ba6cf9703dcbe5";
+
+            var tianditushilian = L.tileLayer(imageURL2, {
+                attribution: "tianditu"
+            });
+
+            tianditushilian.addTo(map); // 将图层添加到地图中
+
+            // 在地图上标记用户位置
+            markUserLocation(userLocation);
+
+            try {
+                // 发送 GET 请求获取站点数据
+                const response = await fetch(`/get_stations`);
+                const stationData = await response.json();
+
+                console.log('站点数据:', stationData); // 在控制台中输出站点数据
+
+                var stationsInDistance = false;
+
+                // 循环遍历站点数据并在地图上标记符合距离要求的站点
+                for (var i = 0; i < stationData.length; i++) {
+                    var station = stationData[i];
+                    var stationLatitude = parseFloat(station.LATITUDE);
+                    var stationLongitude = parseFloat(station.LONGITUDE);
+
+                    // 计算距离
+                    var distance = calculateDistance(userLocation, stationLatitude, stationLongitude);
+
+                    // 在距离范围内标记站点
+                    if (distance <= searchDistance) {
+                        stationsInDistance = true;
+
+                        // 创建标记并添加到地图
+                        let stationMarker = L.circleMarker([stationLatitude, stationLongitude], {
+                            color: 'green',
+                            fillColor: 'green',
+                            fillOpacity: 1,
+                            radius: 6
+                        }).addTo(map)
+                            .bindPopup(`站点信息: <br> 位置: ${station.SITE}`);
+
+                        // 将站点信息添加到标记，以便在点击事件中使用
+                        stationMarker.stationInfo = station.SITE;
+
+                        stationMarker.on('click', function(e) {
+                            // 当站点标记被点击时，显示折线图
+                            showStationLineChart(e.target.stationInfo);
+                        });
+                    }
+                }
+
+                // 如果没有站点在距离范围内，弹出提示
+                if (!stationsInDistance) {
+                    alert("该范围内无站点，请扩大范围！");
+                }
+            } catch (error) {
+                console.error('获取站点数据时出错：', error);
+            }
+        }
+
+
+
+        // 在折线图容器中显示折线图的函数
+        function displayLineChart(historicalData) {
+            // 销毁之前的折线图
+            if (lineChart !== null) {
+                lineChart.destroy();
+            }
+
+            // 获取折线图容器的上下文
+            var ctx = document.getElementById('myChart').getContext('2d');
+            // 创建新的折线图
+            lineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: historicalData.map(entry => entry.TIME),
+                    datasets: [{
+                        label: 'PM2.5',
+                        data: historicalData.map(entry => entry.PM2_5),
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: [{
+                            type: 'linear',
+                            position: 'bottom',
+                        }],
+                        y: [{
+                            ticks: {
+                                beginAtZero: true,
+                            },
+                        }],
+                    },
+                },
+            });
+        }
+
+
+
+
+        async function showStationLineChart(stationId) {
+            try {
+                // 发送 GET 请求获取特定站点历史数据
+                const response = await fetch(`/get_station_data/${stationId}`);
+                const stationData = await response.json();
+
+                console.log(`站点 ${stationId} 历史数据 - PM2_5:`, stationData.historical_data);
+
+                // 在折线图容器中显示折线图
+                displayLineChart(stationData.historical_data);
+            } catch (error) {
+                console.error(`获取站点 ${stationId} 历史数据时出错：`, error);
+            }
+        }
+
+
+
+        // 计算两个经度和纬度之间的直线距离的函数
+        function calculateDistance(userLocation, lat2, lon2) {
+            var userLocationArray = userLocation.split(',').map(function(item) {
+                return parseFloat(item);
+            });
+
+            var lat1_rad = Math.radians(userLocationArray[0]);
+            var lon1_rad = Math.radians(userLocationArray[1]);
+            var lat2_rad = Math.radians(lat2);
+            var lon2_rad = Math.radians(lon2);
+
+            var dlon = lon2_rad - lon1_rad;
+            var dlat = lat2_rad - lat1_rad;
+            var a = Math.sin(dlat / 2) ** 2 + Math.cos(lat1_rad) * Math.cos(lat2_rad) * Math.sin(dlon / 2) ** 2;
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            var distance = 6371 * c; // 地球半径为 6371 公里
+
+            return distance;
+        }
+
+        // 将角度转换为弧度的函数
+        Math.radians = function(degrees) {
+            return degrees * Math.PI / 180;
+        };
+    </script>
+</head>
+
+<body>
+    <h1>查询表单</h1>
+    <div>
+        <h2>功能1: 搜索附近站点</h2>
+        <label for="userLocation">用户位置:</label>
+        <input type="text" id="userLocation" name="userLocation" readonly>
+        <button onclick="getCurrentLocation()">获取当前位置</button><br><br>
+        <label for="searchDistance">搜索距离 (公里):</label>
+        <input type="number" id="searchDistance" name="searchDistance" min="1"><br><br>
+        <button onclick="searchNearbyStations()">搜索</button>
+    </div>
+    <!-- 添加一个用于显示 Leaflet 地图的容器 -->
+    <div id="map"></div>
+    <!-- 添加一个用于显示折线图的容器 -->
+    <div id="chartContainer">
+        <canvas id="myChart"></canvas>
+</body>
+
+</html>

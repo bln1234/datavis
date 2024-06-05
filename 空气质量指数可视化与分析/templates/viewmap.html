@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Map</title>
+    <!-- Include Leaflet CSS and JavaScript -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        /* Set the map container size */
+        #map {
+            height: 500px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Station Map</h1>
+    <!-- Create a map container -->
+    <div id="map"></div>
+
+    <script>
+        // Initialize the map
+        // Initialize the map
+        var map = L.map('map').setView([31.2304, 121.4737], 8); // 设置初始中心点为上海市中心，缩放级别为12
+
+        // 添加天地图标准影像图层
+        // 天地图矢量底图url
+        const imageURL2 = "https://t0.tianditu.gov.cn/vec_w/wmts?" +
+            "SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles" +
+            "&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=7939ba6ac2e6c0071e7b7ce4ba65023b";
+
+        var tianditushilian = L.tileLayer(imageURL2, {
+            attribution: "tianditu"
+        });
+
+        tianditushilian.addTo(map); // 将图层添加到地图中
+
+
+
+
+
+        // // Add a tile layer (OpenStreetMap)
+        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Fetch station data from the server
+        fetch('/get_stations')
+        .then(response => response.json())
+        .then(stations => {
+            // 在地图上循环添加站点标记
+            for (var i = 0; i < stations.length; i++) {
+                var station = stations[i];
+                var lat = parseFloat(station.LATITUDE);
+                var lon = parseFloat(station.LONGITUDE);
+
+                console.log('Station Coordinates:', lat, lon);  // 添加这一行进行调试
+
+                // Add a marker for each station
+                L.marker([lat, lon])
+                    .addTo(map)
+                    .bindPopup(`<b>${station.SITE}</b><br>PM2.5: ${station['PM2_5']}<br>PM10: ${station.PM10}<br>SO2: ${station.SO2}<br>NO2: ${station.NO2}<br>CO: ${station.CO}`);
+            }
+        })
+        .catch(error => console.error('Error fetching station data:', error));
+
+
+    </script>
+</body>
+</html>
