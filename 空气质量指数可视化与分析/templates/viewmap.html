@@ -65,11 +65,11 @@
 	}
 
 	map.on('click', onMapClick);
-    d3.json("站点列表.json",function(data) {
+    d3.json("../站点列表.json",function(data) {
 		console.log(data);
 		var length = data.length;
 		console.log(length);
-		d3.json("china_sites_20240601.json",function(air_quality){
+		d3.json("../china_sites_20240601.json",function(air_quality){
 		
 		for(var i=0;i<length;i++) {
 			var latitude = parseFloat(data[i].Column5);
