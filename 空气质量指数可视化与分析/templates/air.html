@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>站点某时段空气质量</title>
+    <script src="d3.v3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.0/dist/echarts.min.js"></script>
+    
+</head>
+
+<body>
+    <div>
+        <label for="text1">输入监测站点号：</label>
+        <input type="text" id="text1">
+        <br>
+        <label for="text2">输入污染物：</label>
+        <input type="text" id="text2">
+        <br>
+        <button id="calculateButton">输出结果</button>
+    </div>
+
+    <div id="lineChart" style="width: 600px; height: 400px;"></div>
+
+    <script>
+        var myChart = echarts.init(document.getElementById('lineChart'));
+
+        document.getElementById('calculateButton').addEventListener('click', function() {
+            var site = document.getElementById('text1').value;
+            var detection = document.getElementById('text2').value;
+            d3.json("../china_sites_20240601.json",function(air_quality){
+                var air=[];
+                if(detection=='AQI' || (detection=='aqi')) //查看AQI
+                {
+                    for(var i=0;i<24;i++)
+                    {
+                        if(air_quality[i*15+0][site])
+                        {
+                            air[i]=parseFloat(air_quality[i*15+0][site]);
+                        }
+                        else
+                        {
+                            air[i]=0;
+                        }
+                    }
+                }
+                else if((detection=='PM2.5') || (detection=='pm2.5')) //查看PM2.5
+                {
+                    for(var i=0;i<24;i++)
+                    {
+                        if(air_quality[i*15+1][site])
+                        {
+                            air[i]=parseFloat(air_quality[i*15+1][site]);
+                        }
+                        else
+                        {
+                            air[i]=0;
+                        }
+                    }
+                }
+                else if(detection=='PM10' || (detection=='pm10')) //查看PM10
+                {
+                    for(var i=0;i<24;i++)
+                    {
+                        if(air_quality[i*15+3][site])
+                        {
+                            air[i]=parseFloat(air_quality[i*15+3][site]);
+                        }
+                        else
+                        {
+                            air[i]=0;
+                        }
+                    }
+                }
+                else if(detection=='SO2') //查看SO2
+                {
+                    for(var i=0;i<24;i++)
+                    {
+                        if(air_quality[i*15+5][site])
+                        {
+                            air[i]=parseFloat(air_quality[i*15+5][site]);
+                        }
+                        else
+                        {
+                            air[i]=0;
+                        }
+                    }
+                }
+                else if(detection=='NO2') //查看PM10
+                {
+                    for(var i=0;i<24;i++)
+                    {
+                        if(air_quality[i*15+7][site])
+                        {
+                            air[i]=parseFloat(air_quality[i*15+7][site]);
+                        }
+                        else
+                        {
+                            air[i]=0;
+                        }
+                    }
+                }
+                else if(detection=='O3') //查看O3
+                {
+                    for(var i=0;i<24;i++)
+                    {
+                        if(air_quality[i*15+9][site])
+                        {
+                            air[i]=parseFloat(air_quality[i*15+9][site]);
+                        }
+                        else
+                        {
+                            air[i]=0;
+                        }
+                    }
+                }
+                else if(detection=='CO') //查看CO
+                {
+                    for(var i=0;i<24;i++)
+                    {
+                        if(air_quality[i*15+13][site])
+                        {
+                            air[i]=parseFloat(air_quality[i*15+13][site]);
+                        }
+                        else
+                        {
+                            air[i]=0;
+                        }
+                    }
+                }
+                else
+                {
+                    for(var i=0;i<24;i++)
+                    {
+                        air[i]=0;
+                    }
+                }
+                console.log(air);
+                d3.json("../站点列表.json",function(data){
+                    var len=data.length;
+                    var city="";
+                    for(var j=0;j<len;j++)
+                    {
+                        if(site==data[j].Column1)
+                        {
+                            city=city+data[j].Column3+"的"+data[j].Column2+"监测点"+"的"+detection+"指标：";
+                            break;
+                        }
+                    }
+                    if(city=="") city="监测站点输入不对";
+                    var option = {
+                        title: {
+                            text: city
+                        },
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [{
+                            data: air,
+                            type: 'line'
+                        }]
+                    };
+                
+                myChart.setOption(option);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

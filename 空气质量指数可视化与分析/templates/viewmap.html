@@ -41,20 +41,6 @@
 		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 	}).addTo(map);
 
-	// const circle = L.circle([51.508, -0.11], {
-	// 	color: 'red',
-	// 	fillColor: '#f03',
-	// 	fillOpacity: 0.5,
-	// 	radius: 500
-	// }).addTo(map).bindPopup('I am a circle.');
-
-	// const polygon = L.polygon([
-	// 	[51.509, -0.08],
-	// 	[51.503, -0.06],
-	// 	[51.51, -0.047]
-	// ]).addTo(map).bindPopup('I am a polygon.');
-
-
 	const popup = L.popup();
 
 	function onMapClick(e) {
@@ -78,11 +64,159 @@
 			var name=data[i].Column2;
 			var city=data[i].Column3;
 			console.log(num);
-			var AQI=air_quality[0][num];
-			console.log(AQI);
+			var AQI=0.0;
+			var PM25=0.0;
+			var PM10=0.0;
+			var SO2=0.0;
+			var NO2=0.0;
+			var O3=0.0;
+			var CO=0.0;
+			var time=0;
+			for(var j=0;j<24;j++)  //计算该日平均AQI
+			{
+				if(parseFloat(air_quality[j*15+0][num]))
+				{
+					AQI=AQI+parseFloat(air_quality[j*15+0][num]);
+					time++;
+				}
+			}
+			if(time!=0)
+			{
+				AQI=AQI/time;
+			}
+			time=0;
+			if(air_quality[15*23+2][num])  //计算该日平均PM2.5
+			{
+			    PM25=parseFloat(air_quality[15*23+2][num]); 
+			}
+			else
+			{
+				for(var j=0;j<24;j++)
+				{
+					if(parseFloat(air_quality[j*15+1][num]))
+				    {
+						PM25=PM25+parseFloat(air_quality[j*15+1][num]);
+						time++;
+					}
+				}
+				if(time!=0)
+				{
+					PM25=PM25/time;
+				}
+			}
+			time=0;
+			if(air_quality[15*23+4][num])  //计算该日平均PM10
+			{
+			    PM10=parseFloat(air_quality[15*23+4][num]); 
+			}
+			else
+			{
+				for(var j=0;j<24;j++)
+				{
+					if(parseFloat(air_quality[j*15+3][num]))
+				    {
+						PM10=PM10+parseFloat(air_quality[j*15+3][num]);
+						time++;
+					}
+				}
+				if(time!=0)
+				{
+					PM10=PM10/time;
+				}
+			}
+			time=0;
+			if(air_quality[15*23+6][num])  //计算该日平均SO2
+			{
+			    SO2=parseFloat(air_quality[15*23+6][num]); 
+			}
+			else
+			{
+				for(var j=0;j<24;j++)
+				{
+					if(parseFloat(air_quality[j*15+5][num]))
+				    {
+						SO2=SO2+parseFloat(air_quality[j*15+5][num]);
+						time++;
+					}
+				}
+				if(time!=0)
+				{
+					SO2=SO2/time;
+				}
+			}
+			time=0;
+			if(air_quality[15*23+8][num])  //计算该日平均NO2
+			{
+			    NO2=parseFloat(air_quality[15*23+8][num]); 
+			}
+			else
+			{
+				for(var j=0;j<24;j++)
+				{
+					if(parseFloat(air_quality[j*15+7][num]))
+				    {
+						NO2=NO2+parseFloat(air_quality[j*15+7][num]);
+						time++;
+					}
+				}
+				if(time!=0)
+				{
+					NO2=NO2/time;
+				}
+			}
+			time=0;
+			if(air_quality[15*23+10][num])  //计算该日平均O3
+			{
+			    O3=parseFloat(air_quality[15*23+10][num]); 
+			}
+			else
+			{
+				for(var j=0;j<24;j++)
+				{
+					if(parseFloat(air_quality[j*15+9][num]))
+				    {
+						O3=O3+parseFloat(air_quality[j*15+9][num]);
+						time++;
+					}
+				}
+				if(time!=0)
+				{
+					O3=O3/time;
+				}
+			}
+			time=0;
+			if(air_quality[15*23+14][num])  //计算该日平均CO
+			{
+			    CO=parseFloat(air_quality[15*23+14][num]); 
+			}
+			else
+			{
+				for(var j=0;j<24;j++)
+				{
+					if(parseFloat(air_quality[j*15+13][num]))
+				    {
+						CO=CO+parseFloat(air_quality[j*15+13][num]);
+						time++;
+					}
+				}
+				if(time!=0)
+				{
+					CO=CO/time;
+				}
+			}
             if(latitude && longitude) {
             	console.log("经度：" + longitude + "，纬度：" + latitude);
-            	const marker = L.marker([latitude,longitude]).addTo(map).bindPopup("监测点编号："+num+"<br>监测点名称："+name+"<br>城市："+city+"<br>AQI:"+AQI);
+            	const marker = L.marker([latitude,longitude]).addTo(map).bindPopup
+				("监测点编号："+num+
+				"<br>监测点名称："+name+
+				"<br>城市："+city+
+				"<br>AQI:"+AQI.toFixed(2)+
+				"<br>PM2.5:"+PM25.toFixed(2)+
+				"<br>PM10:"+PM10.toFixed(2)+
+				"<br>SO2:"+SO2.toFixed(2)+
+				"<br>NO2:"+NO2.toFixed(2)+
+				"<br>O3:"+O3.toFixed(2)+
+				"<br>CO:"+CO.toFixed(2));
         	} else {
             	console.log("经纬度数据缺失");
         	}
