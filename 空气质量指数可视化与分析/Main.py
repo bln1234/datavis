@@ -19,7 +19,7 @@ def home():
 
     return render_template('home.html')
 
-@app.route('/qryform')
+@app.route('/qryform.html')
 def qryform():
     return render_template('qryform.html')
 
@@ -99,11 +99,11 @@ def get_station_data(station_name):
         return jsonify({'error': '发生意外错误'})
 
 
-@app.route('/chartmap3')
+@app.route('/chartmap3.html')
 def chartmap():
     return render_template('chartmap3.html')
 
-@app.route('/viewmap')
+@app.route('/viewmap.html')
 def viewmap():
     return render_template('viewmap.html')
 
