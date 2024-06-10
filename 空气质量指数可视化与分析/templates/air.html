@@ -4,7 +4,6 @@
     <title>站点某时段空气质量</title>
     <script src="d3.v3.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.0/dist/echarts.min.js"></script>
-    
 </head>
 
 <body>
@@ -12,10 +11,16 @@
         <label for="text1">输入监测站点号：</label>
         <input type="text" id="text1">
         <br>
-        <label for="text2">输入污染物：</label>
-        <input type="text" id="text2">
-        <br>
-        <button id="calculateButton">输出结果</button>
+        <label for="select2">选择污染物：</label>
+        <select id="select2">
+            <option value="AQI">AQI</option>
+            <option value="PM2.5">PM2.5</option>
+            <option value="PM10">PM10</option>
+            <option value="SO2">SO2</option>
+            <option value="NO2">NO2</option>
+            <option value="O3">O3</option>
+            <option value="CO">CO</option>
+        </select>
     </div>
 
     <div id="lineChart" style="width: 600px; height: 400px;"></div>
@@ -23,9 +28,9 @@
     <script>
         var myChart = echarts.init(document.getElementById('lineChart'));
 
-        document.getElementById('calculateButton').addEventListener('click', function() {
+        function updateChart() {
             var site = document.getElementById('text1').value;
-            var detection = document.getElementById('text2').value;
+            var detection = document.getElementById('select2').value;
             d3.json("../china_sites_20240601.json",function(air_quality){
                 var air=[];
                 if(detection=='AQI' || (detection=='aqi')) //查看AQI
@@ -166,10 +171,13 @@
                         }]
                     };
                 
-                myChart.setOption(option);
+                    myChart.setOption(option);
                 });
             });
-        });
+        }
+
+        document.getElementById('text1').addEventListener('input', updateChart);
+        document.getElementById('select2').addEventListener('change', updateChart);
     </script>
 </body>
 </html>

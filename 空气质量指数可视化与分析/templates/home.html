@@ -1,14 +1,106 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>Home</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主页</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-image: url('../bkg.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            position: relative;
+            min-height: 100vh;
+        }
+        .container {
+            text-align: center;
+            padding: 48px;
+            background-color: rgba(240, 240, 240, 0.0); /* 添加半透明背景 */
+            margin-bottom: 40px; /* 给页脚留出空间 */
+        }
+        .title {
+            font-size: 2.5em;
+            color: #212F3C;
+            margin-bottom: 20px;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .button {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            font-weight: 400;
+            margin: 4px 2px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 8px; /* 添加圆角 */
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            text-align: center;
+            padding: 10px;
+            background-color: rgba(240, 240, 240, 0.0); /* 添加半透明背景 */
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            font-size: 25px; /* 添加字体大小 */
+            font-family:cursive;
+            color: #ECF0F1; /* 添加字体颜色 */
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to Shanghai Air Quality Monitoring</h1>
-    <ul>
-        <li><a href="/qryform">Query</a></li>
-        <li><a href="/viewmap">Visualization</a></li>
-        <li><a href="/chartmap3">Static Visualization</a></li>
-    </ul>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const Home = () => {
+            return (
+                <div className="container">
+                    <h1 className="title">空气质量监测查询</h1>
+                    <div className="button-group">
+                        <a href="/qryform.html" className="button">查询</a>
+                        <a href="/viewmap.html" className="button">可视化</a>
+                        <a href="/chartmap3.html" className="button">静态可视化</a>
+                    </div>
+                </div>
+            );
+        };
+
+        const Footer = () => {
+            return (
+                <div className="footer">
+                    <b>超级无敌宇宙暴龙数据可视化小组</b>
+                </div>
+            );
+        };
+
+        const App = () => {
+            return (
+                <div>
+                    <Home />
+                    <Footer />
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
 </body>
 </html>
