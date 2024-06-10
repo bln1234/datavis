@@ -16,24 +16,32 @@
 		html, body {
 			height: 100%;
 			margin: 0;
+			padding: 0;
+			width: 100%;
 		}
-		.leaflet-container {
-			height: 400px;
-			width: 600px;
-			max-width: 100%;
-			max-height: 100%;
+		#map {
+			height: 100%;
+			width: 100%;
+		}
+		/* 新增的CSS样式，用于修改h1的样式 */
+		h1 {
+			text-align: center;  /* 居中对齐 */
+			font-size: 36px;    /* 字体大小 */
+			color: #4CAF50;     /* 字体颜色 */
+			margin-top: 20px;   /* 顶部外边距 */
+			font-family: Arial, sans-serif; /* 字体 */
+			background-color: #f4f4f4; /* 背景颜色 */
+			padding: 10px;      /* 内边距 */
+			border-radius: 10px; /* 边框圆角 */
 		}
 	</style>
-
-	
 </head>
 <body>
 
-
 <script src="d3.v3.min.js"></script>
-<div id="map" style="width: 1920px; height: 1080px;"></div>
+<h1>Station Map</h1>
+<div id="map"></div>
 <script>
-
 	const map = L.map('map').setView([31.613245, 111.262859], 7);
 
 	const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -51,181 +59,141 @@
 	}
 
 	map.on('click', onMapClick);
-    d3.json("../站点列表.json",function(data) {
+
+	d3.json("../站点列表.json", function(data) {
 		console.log(data);
 		var length = data.length;
 		console.log(length);
-		d3.json("../china_sites_20240601.json",function(air_quality){
-		
-		for(var i=0;i<length;i++) {
-			var latitude = parseFloat(data[i].Column5);
-            var longitude = parseFloat(data[i].Column4);
-			var num=data[i].Column1;
-			var name=data[i].Column2;
-			var city=data[i].Column3;
-			console.log(num);
-			var AQI=0.0;
-			var PM25=0.0;
-			var PM10=0.0;
-			var SO2=0.0;
-			var NO2=0.0;
-			var O3=0.0;
-			var CO=0.0;
-			var time=0;
-			for(var j=0;j<24;j++)  //计算该日平均AQI
-			{
-				if(parseFloat(air_quality[j*15+0][num]))
-				{
-					AQI=AQI+parseFloat(air_quality[j*15+0][num]);
-					time++;
-				}
-			}
-			if(time!=0)
-			{
-				AQI=AQI/time;
-			}
-			time=0;
-			if(air_quality[15*23+2][num])  //计算该日平均PM2.5
-			{
-			    PM25=parseFloat(air_quality[15*23+2][num]); 
-			}
-			else
-			{
-				for(var j=0;j<24;j++)
-				{
-					if(parseFloat(air_quality[j*15+1][num]))
-				    {
-						PM25=PM25+parseFloat(air_quality[j*15+1][num]);
+		d3.json("../china_sites_20240601.json", function(air_quality) {
+			for (var i = 0; i < length; i++) {
+				var latitude = parseFloat(data[i].Column5);
+				var longitude = parseFloat(data[i].Column4);
+				var num = data[i].Column1;
+				var name = data[i].Column2;
+				var city = data[i].Column3;
+				console.log(num);
+				var AQI = 0.0;
+				var PM25 = 0.0;
+				var PM10 = 0.0;
+				var SO2 = 0.0;
+				var NO2 = 0.0;
+				var O3 = 0.0;
+				var CO = 0.0;
+				var time = 0;
+				for (var j = 0; j < 24; j++) { //计算该日平均AQI
+					if (parseFloat(air_quality[j * 15 + 0][num])) {
+						AQI = AQI + parseFloat(air_quality[j * 15 + 0][num]);
 						time++;
 					}
 				}
-				if(time!=0)
-				{
-					PM25=PM25/time;
+				if (time != 0) {
+					AQI = AQI / time;
 				}
-			}
-			time=0;
-			if(air_quality[15*23+4][num])  //计算该日平均PM10
-			{
-			    PM10=parseFloat(air_quality[15*23+4][num]); 
-			}
-			else
-			{
-				for(var j=0;j<24;j++)
-				{
-					if(parseFloat(air_quality[j*15+3][num]))
-				    {
-						PM10=PM10+parseFloat(air_quality[j*15+3][num]);
-						time++;
+				time = 0;
+				if (air_quality[15 * 23 + 2][num]) { //计算该日平均PM2.5
+					PM25 = parseFloat(air_quality[15 * 23 + 2][num]);
+				} else {
+					for (var j = 0; j < 24; j++) {
+						if (parseFloat(air_quality[j * 15 + 1][num])) {
+							PM25 = PM25 + parseFloat(air_quality[j * 15 + 1][num]);
+							time++;
+						}
+					}
+					if (time != 0) {
+						PM25 = PM25 / time;
 					}
 				}
-				if(time!=0)
-				{
-					PM10=PM10/time;
-				}
-			}
-			time=0;
-			if(air_quality[15*23+6][num])  //计算该日平均SO2
-			{
-			    SO2=parseFloat(air_quality[15*23+6][num]); 
-			}
-			else
-			{
-				for(var j=0;j<24;j++)
-				{
-					if(parseFloat(air_quality[j*15+5][num]))
-				    {
-						SO2=SO2+parseFloat(air_quality[j*15+5][num]);
-						time++;
+				time = 0;
+				if (air_quality[15 * 23 + 4][num]) { //计算该日平均PM10
+					PM10 = parseFloat(air_quality[15 * 23 + 4][num]);
+				} else {
+					for (var j = 0; j < 24; j++) {
+						if (parseFloat(air_quality[j * 15 + 3][num])) {
+							PM10 = PM10 + parseFloat(air_quality[j * 15 + 3][num]);
+							time++;
+						}
+					}
+					if (time != 0) {
+						PM10 = PM10 / time;
 					}
 				}
-				if(time!=0)
-				{
-					SO2=SO2/time;
-				}
-			}
-			time=0;
-			if(air_quality[15*23+8][num])  //计算该日平均NO2
-			{
-			    NO2=parseFloat(air_quality[15*23+8][num]); 
-			}
-			else
-			{
-				for(var j=0;j<24;j++)
-				{
-					if(parseFloat(air_quality[j*15+7][num]))
-				    {
-						NO2=NO2+parseFloat(air_quality[j*15+7][num]);
-						time++;
+				time = 0;
+				if (air_quality[15 * 23 + 6][num]) { //计算该日平均SO2
+					SO2 = parseFloat(air_quality[15 * 23 + 6][num]);
+				} else {
+					for (var j = 0; j < 24; j++) {
+						if (parseFloat(air_quality[j * 15 + 5][num])) {
+							SO2 = SO2 + parseFloat(air_quality[j * 15 + 5][num]);
+							time++;
+						}
+					}
+					if (time != 0) {
+						SO2 = SO2 / time;
 					}
 				}
-				if(time!=0)
-				{
-					NO2=NO2/time;
-				}
-			}
-			time=0;
-			if(air_quality[15*23+10][num])  //计算该日平均O3
-			{
-			    O3=parseFloat(air_quality[15*23+10][num]); 
-			}
-			else
-			{
-				for(var j=0;j<24;j++)
-				{
-					if(parseFloat(air_quality[j*15+9][num]))
-				    {
-						O3=O3+parseFloat(air_quality[j*15+9][num]);
-						time++;
+				time = 0;
+				if (air_quality[15 * 23 + 8][num]) { //计算该日平均NO2
+					NO2 = parseFloat(air_quality[15 * 23 + 8][num]);
+				} else {
+					for (var j = 0; j < 24; j++) {
+						if (parseFloat(air_quality[j * 15 + 7][num])) {
+							NO2 = NO2 + parseFloat(air_quality[j * 15 + 7][num]);
+							time++;
+						}
+					}
+					if (time != 0) {
+						NO2 = NO2 / time;
 					}
 				}
-				if(time!=0)
-				{
-					O3=O3/time;
-				}
-			}
-			time=0;
-			if(air_quality[15*23+14][num])  //计算该日平均CO
-			{
-			    CO=parseFloat(air_quality[15*23+14][num]); 
-			}
-			else
-			{
-				for(var j=0;j<24;j++)
-				{
-					if(parseFloat(air_quality[j*15+13][num]))
-				    {
-						CO=CO+parseFloat(air_quality[j*15+13][num]);
-						time++;
+				time = 0;
+				if (air_quality[15 * 23 + 10][num]) { //计算该日平均O3
+					O3 = parseFloat(air_quality[15 * 23 + 10][num]);
+				} else {
+					for (var j = 0; j < 24; j++) {
+						if (parseFloat(air_quality[j * 15 + 9][num])) {
+							O3 = O3 + parseFloat(air_quality[j * 15 + 9][num]);
+							time++;
+						}
+					}
+					if (time != 0) {
+						O3 = O3 / time;
 					}
 				}
-				if(time!=0)
-				{
-					CO=CO/time;
+				time = 0;
+				if (air_quality[15 * 23 + 14][num]) { //计算该日平均CO
+					CO = parseFloat(air_quality[15 * 23 + 14][num]);
+				} else {
+					for (var j = 0; j < 24; j++) {
+						if (parseFloat(air_quality[j * 15 + 13][num])) {
+							CO = CO + parseFloat(air_quality[j * 15 + 13][num]);
+							time++;
+						}
+					}
+					if (time != 0) {
+						CO = CO / time;
+					}
+				}
+				if (latitude && longitude) {
+					console.log("经度：" + longitude + "，纬度：" + latitude);
+					const marker = L.marker([latitude, longitude]).addTo(map).bindPopup(
+						"监测点编号：" + num +
+						"<br>监测点名称：" + name +
+						"<br>城市：" + city +
+						"<br>AQI:" + AQI.toFixed(2) +
+						"<br>PM2.5:" + PM25.toFixed(2) +
+						"<br>PM10:" + PM10.toFixed(2) +
+						"<br>SO2:" + SO2.toFixed(2) +
+						"<br>NO2:" + NO2.toFixed(2) +
+						"<br>O3:" + O3.toFixed(2) +
+						"<br>CO:" + CO.toFixed(2)
+					);
+				} else {
+					console.log("经纬度数据缺失");
 				}
 			}
-            if(latitude && longitude) {
-            	console.log("经度：" + longitude + "，纬度：" + latitude);
-            	const marker = L.marker([latitude,longitude]).addTo(map).bindPopup
-				("监测点编号："+num+
-				"<br>监测点名称："+name+
-				"<br>城市："+city+
-				"<br>AQI:"+AQI.toFixed(2)+
-				"<br>PM2.5:"+PM25.toFixed(2)+
-				"<br>PM10:"+PM10.toFixed(2)+
-				"<br>SO2:"+SO2.toFixed(2)+
-				"<br>NO2:"+NO2.toFixed(2)+
-				"<br>O3:"+O3.toFixed(2)+
-				"<br>CO:"+CO.toFixed(2));
-        	} else {
-            	console.log("经纬度数据缺失");
-        	}
-        }
-	    });
+		});
 	});
 </script>
-
-
 
 </body>
 </html>
