@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>20240601中国空气质量热力图</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script type="text/javascript" src="./china.js"></script>
+    <style>
+        #map {
+            width: 100%;
+            height: 100vh; /* Full height of the viewport */
+        }
+		h1 {
+			text-align: center; 
+			font-size: 36px;    
+			color: #4CAF50;     
+			margin-top: 20px;   
+			font-family: Arial, sans-serif; 
+			background-color: #f4f4f4; 
+			padding: 10px;      
+			border-radius: 10px; 
+		}
+    </style>
+</head>
+<body>
+<h1>Heat Map</hi>
+<div id="map"></div>
+<script src="d3.v3.min.js"></script>
+<script>
+    var myChart = echarts.init(document.getElementById('map'));
+
+	d3.json("../站点列表.json",function(data) {
+        console.log(data);
+		var length = data.length;
+		console.log(length);
+		d3.json("../china_sites_20240601.json",function(air_quality){
+            var addressPoints = [];
+            for(var i=0;i<length;i++)
+            {
+                var latitude = parseFloat(data[i].Column5);
+                var longitude = parseFloat(data[i].Column4);
+			    var num=data[i].Column1;
+                var AQI=0.0;
+                var time=0;
+			    for(var j=0;j<24;j++)  //计算该日平均AQI
+			    {
+			    	if(parseFloat(air_quality[j*15+0][num]))
+				    {
+					    AQI=AQI+parseFloat(air_quality[j*15+0][num]);
+					    time++;
+				    }
+			    }
+			    if(time!=0)
+			    {
+				    AQI=AQI/time;
+			    }
+                if(latitude && longitude && AQI)
+                {
+                    addressPoints.push({
+						name: data[i].Column2,
+						value:[longitude, latitude, AQI]
+					});
+                }
+            }
+			console.log(addressPoints);
+            var option = {
+                title: {
+                    text: '空气质量热力图',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function (params) {
+                        return params.name + ' : ' + params.value[2];
+                    }
+                },
+                visualMap: {
+                    min: 0,
+                    max: 300,
+                    splitNumber: 20,
+                    color: ['red', '#F1C40F','yellow','#28B463','#33FF57','cyan'],
+                    textStyle: {
+                        color: '#000'
+                    }
+                },
+                geo: {
+                    map: 'china',
+                    roam: true,
+                    label: {
+                        emphasis: {
+                            show: false
+                        }
+                    }
+                },
+                series: [{
+                    name: 'AQI',
+                    type: 'heatmap',
+                    coordinateSystem: 'geo',
+                    data: addressPoints
+                }]
+            };
+
+            myChart.setOption(option);
+        });
+    });
+</script>
+</body>
+</html>
